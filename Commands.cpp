@@ -135,6 +135,7 @@ void Commands::startLoop(Pronet08* robot){
                     if (status == 0) std::cout<<"Forward rotation started "<<n<<"\n";
                     else std::cout<<"Error in rotation "<<n<<"\n";
                 }
+             std::cin >> command;
         }
 
         if (command == "reverse") {
@@ -148,6 +149,7 @@ void Commands::startLoop(Pronet08* robot){
                     if (status == 0) std::cout<<"Reverse rotation started "<<n<<"\n";
                     else std::cout<<"Error in rotation "<<n<<"\n";
                 }
+             std::cin >> command;
         }
     }
 };
