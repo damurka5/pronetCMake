@@ -15,22 +15,25 @@ void Commands::startLoop(Pronet08* robot){
     while (!exit){
         if (command == "exit") {
             std::cout<<"Loop is ended\n Closing the connection\n";
+            robot->closeSerialPort();
+            exit = true;
             break;
         };
 
         if (command == "start") {
-            std::cout<<"Loop is started \nEnter the command connect to connect the robot";
+            std::cout<<"Loop is started \nEnter the command connect to connect the robot:\n";
             std::cin >> command;
         };
 
         if (command == "connect"){
             std::cout<<"Enter comPort below:\n";
             int comPort;
-            cin>>comPort;
-            int status = robot->connectRequest(comPort, 9600);
+            std::cin>>comPort;
+            robot = new Pronet08(comPort, 9600);
+            int status = robot->connectRequest();
             if (status != 0){
                 std::cout<<"Try to reconnect and enter comPort again or exit:\n";
-                cin>>comPort;
+                std::cin>>command;
             } 
         }
 
