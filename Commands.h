@@ -12,5 +12,6 @@ public:
     
 private:
     bool exit;
-
+    bool connected;
+    bool servoOn[4];
 };
