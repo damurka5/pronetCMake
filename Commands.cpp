@@ -11,10 +11,7 @@ Commands::Commands(){
 };
 
 Commands::~Commands(){
-    if (connected) {
-        pronet->servoOff(0);
-        pronet->closeSerialPort();
-    }
+
 };
 
 
@@ -61,13 +58,13 @@ void Commands::startLoop(Pronet08* robot){
                 if (n != 0) {
                     std::cout<<"Turning ON servo "<<n<<"\n";
                     int status = robot->servoOn(n);
-                    if (status != 0) cout<<"Error in turning ON servo "<<n<<"\n";
+                    if (status != 0) std::cout<<"Error in turning ON servo "<<n<<"\n";
                     else servoOn[n-1] = true;
                 } else {
                     std::cout<<"Turning ON all servos\n";
                     int status = robot->servoOn(n);
                     if (status != 0){
-                        cout<<"Error in turning ON all servos\n";
+                        std::cout<<"Error in turning ON all servos\n";
                     } else {
                         for (size_t i = 0; i < 4; i++)
                         {
@@ -90,13 +87,13 @@ void Commands::startLoop(Pronet08* robot){
                 if (n != 0) {
                     std::cout<<"Turning OFF servo "<<n<<"\n";
                     int status = robot->servoOff(n);
-                    if (status != 0) cout<<"Error in turning OFF servo "<<n<<"\n";
+                    if (status != 0) std::cout<<"Error in turning OFF servo "<<n<<"\n";
                     else servoOn[n-1] = false;
                 } else {
                     std::cout<<"Turning OFF all servos\n";
                     int status = robot->servoOff(n);
                     if (status != 0){
-                        cout<<"Error in turning OFF all servos\n";
+                        std::cout<<"Error in turning OFF all servos\n";
                     } else {
                         for (size_t i = 0; i < 4; i++)
                         {
@@ -119,7 +116,7 @@ void Commands::startLoop(Pronet08* robot){
                         std::cout<<"Enter speed for servo "<<n<<"\n";
                         int speed;
                         std::cin>>speed;
-                        int status = pronet->setSpeed(n, speed);
+                        int status = robot->setSpeed(n, speed);
                         if (status == 0) std::cout<<"Speed setted to servo "<<n<<"\n";
                         else std::cout<<"Error in speed setting to servo "<<n<<"\n";
                     }
@@ -134,7 +131,7 @@ void Commands::startLoop(Pronet08* robot){
                     std::cout<<"Robot will rotate servo, enter the servo below:\n";
                     int n;
                     std::cin>>n;
-                    int status = pronet->forwardStart(id);
+                    int status = robot->forwardStart(n);
                     if (status == 0) std::cout<<"Forward rotation started "<<n<<"\n";
                     else std::cout<<"Error in rotation "<<n<<"\n";
                 }
@@ -147,7 +144,7 @@ void Commands::startLoop(Pronet08* robot){
                     std::cout<<"Robot will rotate servo, enter the servo below:\n";
                     int n;
                     std::cin>>n;
-                    int status = pronet->reverseStart(id);
+                    int status = robot->reverseStart(n);
                     if (status == 0) std::cout<<"Reverse rotation started "<<n<<"\n";
                     else std::cout<<"Error in rotation "<<n<<"\n";
                 }
