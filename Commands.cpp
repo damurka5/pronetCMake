@@ -151,5 +151,11 @@ void Commands::startLoop(Pronet08* robot){
                 }
              std::cin >> command;
         }
+
+        if (command == "reset") {
+            int status = robot->resetCommunicationSettings(0);
+            if (status != 0) std::cout << "Error while reseting\n";
+            else std::cout << "Reseted\n";
+        }
     }
 };
