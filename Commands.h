@@ -1,4 +1,5 @@
 #include "Pronet08.h"
+#include "Kinematics.h"
 #include <iostream>
 #include <string>
 
