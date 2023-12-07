@@ -211,6 +211,7 @@ void Commands::startLoop(Pronet08* robot){
             int status = robot->stopRotation(0);
             if (status == 0) std::cout<<"Stopped\n";
             else std::cout<<"Error in stopping\n";
+            std::cin >> command;
         }
 
     }
