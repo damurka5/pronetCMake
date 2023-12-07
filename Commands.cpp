@@ -171,19 +171,19 @@ void Commands::startLoop(Pronet08* robot){
             uint16_t data[255] = { 0, };
             for (size_t i = 0; i < 4; i++){
                 int status = robot->readActualSpeed(i+1, data);
-                std::cout << "Servo "<<i+1<<" actual speed: "<<data[0];
+                std::cout << "Servo "<<i+1<<" actual speed: "<<data[0]<<"\n";
                 if (status != 0){
                     std::cout << "Error in actual speed\n";
                 }
 
-                int status = robot->readSetSpeed(i+1, data);
-                std::cout << "Servo "<<i+1<<" setted speed: "<<data[0];
+                status = robot->readSetSpeed(i+1, data);
+                std::cout << "Servo "<<i+1<<" setted speed: "<<data[0] << "\n";
                 if (status != 0){
                     std::cout << "Error in setted speed\n";
                 }
 
-                int status = robot->readActualPosition(i+1, data);
-                std::cout << "Servo "<<i+1<<" actual position: "<<data[0];
+                status = robot->readActualPosition(i+1, data);
+                std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n";
                 if (status != 0){
                     std::cout << "Error in position\n";
                 }
@@ -192,26 +192,30 @@ void Commands::startLoop(Pronet08* robot){
         }
         
         if (command == "run5sec") {
-            int oneSec = 1000000;
+            int oneSec = 1000;
             int status = robot->forwardStart(0);
             if (status == 0) std::cout<<"Forward rotation started\n";
             else std::cout<<"Error in rotation\n";
-            Sleep(2*oneSec);
+            Sleep(5000);
 
-            int status = robot->stopRotation(0);
+            status = robot->stopRotation(0);
             if (status == 0) std::cout<<"Stopped\n";
-            else std::cout<<"Error in stopping\n";
-            Sleep(oneSec);
+            else std::cout<<"Error in stopping\n"; // do not attempt to change direction without stopping
+            //Sleep(1000); // without sleep there is delay 
+            // отчет об операциях проведенных по лицевому счету за период (открытие) до перевода ()
+            // заказать выписку
+            // нужно показать движение бумаг
 
-            int status = robot->reverseStart(0);
-            if (status == 0) std::cout<<"Reverse rotation started\n";
-            else std::cout<<"Error in rotation\n";
-            Sleep(2*oneSec);
-
-            int status = robot->stopRotation(0);
-            if (status == 0) std::cout<<"Stopped\n";
-            else std::cout<<"Error in stopping\n";
             std::cin >> command;
+            //status = robot->reverseStart(0);
+            //if (status == 0) std::cout<<"Reverse rotation started\n";
+            //else std::cout<<"Error in rotation\n";
+            //Sleep(5000);
+
+            //status = robot->stopRotation(0);
+            //if (status == 0) std::cout<<"Stopped\n";
+            //else std::cout<<"Error in stopping\n";
+            //std::cin >> command;
         }
 
     }

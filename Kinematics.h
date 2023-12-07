@@ -19,7 +19,7 @@ public:
 
     int calculateInverseKinematics(double x, double y, double z);
 
-    vector<double> getInverseKinematics(double x, double y, double z);
+   // vector<double> getInverseKinematics(double x, double y, double z);
     
 private:
     double x1, y1, x2, y2, x3, y3, x4, y4, z;

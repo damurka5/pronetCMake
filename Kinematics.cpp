@@ -9,7 +9,7 @@ Kinematics::Kinematics(double x1=0, double y1=0, double x2=2004, double y2=0, do
     this->y2=y2;
     this->y3=y3;
     this->y4=y4;
-    this.z=z;
+    this->z=z;
 };
 
 Kinematics::~Kinematics(){};
@@ -38,15 +38,15 @@ int Kinematics::calculateInverseKinematics(double x, double y, double z){
     return res;
 };
 
-vector<double> Kinematics::getInverseKinematics(double x, double y, double z){
-    // formula is:
-    // q_i = sqrt((x1-Xi)^2 + (y1-Yi)^2 + (z1-Zi)^2)
-
-    q1 = std::hypot(this->x1-x, this->y1-y, this->z-z);
-    q2 = std::hypot(this->x2-x, this->y2-y, this->z-z);
-    q3 = std::hypot(this->x3-x, this->y3-y, this->z-z);
-    q4 = std::hypot(this->x4-x, this->y4-y, this->z-z);
-
-    vector<double> q = {q1, q2, q3, q4};
-    return q;
-};
+//vector<double> Kinematics::getInverseKinematics(double x, double y, double z){
+//    // formula is:
+//    // q_i = sqrt((x1-Xi)^2 + (y1-Yi)^2 + (z1-Zi)^2)
+//
+//    q1 = std::hypot(this->x1-x, this->y1-y, this->z-z);
+//    q2 = std::hypot(this->x2-x, this->y2-y, this->z-z);
+//    q3 = std::hypot(this->x3-x, this->y3-y, this->z-z);
+//    q4 = std::hypot(this->x4-x, this->y4-y, this->z-z);
+//
+//    vector<double> q = {q1, q2, q3, q4};
+//    return q;
+//};
