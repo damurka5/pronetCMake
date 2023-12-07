@@ -10,11 +10,9 @@ Kinematics::Kinematics(double x1=0, double y1=0, double x2=2004, double y2=0, do
     this->y3=y3;
     this->y4=y4;
     this.z=z;
-}
+};
 
-Kinematics::~Kinematics(){}
-
-
+Kinematics::~Kinematics(){};
 
 int Kinematics::calculateInverseKinematics(double x, double y, double z){
     // formula is:
@@ -38,7 +36,7 @@ int Kinematics::calculateInverseKinematics(double x, double y, double z){
     }
     
     return res;
-}
+};
 
 vector<double> Kinematics::getInverseKinematics(double x, double y, double z){
     // formula is:
@@ -51,4 +49,4 @@ vector<double> Kinematics::getInverseKinematics(double x, double y, double z){
 
     vector<double> q = {q1, q2, q3, q4};
     return q;
-}
+};
