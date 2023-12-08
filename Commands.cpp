@@ -215,6 +215,13 @@ void Commands::startLoop(Pronet08* robot){
             //std::cin >> command;
         }
 
+        if (command == "test") {
+            std::vector<std::vector<double>> path;
+            std::vector<double> zero = { 0, 0, 0 };
+            std::vector<double> p1 = { 1, 0, 0 };
+            pathExecution(robot, path, 1);
+        }
+
     }
 };
 
@@ -225,12 +232,11 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     std::vector<std::vector<double>> differentiatedPath;
     differentiatedPath.push_back(path[0]);
     for (int i = 1; i < path.size(); i++){
-        double dS = std::hypot(path[i][0] - path[i-1][0], 
-                               path[i][1] - path[i-1][1], 
-                               path[i][2] - path[i-1][2]); // distance between two adjacent points in path
+        double dS = hypot(path[i][0] - path[i-1][0], 
+                          path[i][1] - path[i-1][1], 
+                          path[i][2] - path[i-1][2]); // distance between two adjacent points in path
         int n;
-        if (ds % robotKinematics.dl == 0) n = dS/robotKinematics.dl;
-        else n = 1 + (dS/robotKinematics.dl); 
+        n = 1 + (dS/robotKinematics.dl); 
         
         double t = dS/velocity;
         double dt = t/n;
