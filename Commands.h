@@ -10,6 +10,8 @@ public:
 	~Commands();
 
     void startLoop(Pronet08* robot);
+
+    void pathExecution(Pronet08* robot, std::vector<std::vector<double>> path, double velocity);
     
 private:
     bool exit;

@@ -202,9 +202,6 @@ void Commands::startLoop(Pronet08* robot){
             if (status == 0) std::cout<<"Stopped\n";
             else std::cout<<"Error in stopping\n"; // do not attempt to change direction without stopping
             //Sleep(1000); // without sleep there is delay 
-            // отчет об операциях проведенных по лицевому счету за период (открытие) до перевода ()
-            // заказать выписку
-            // нужно показать движение бумаг
 
             std::cin >> command;
             //status = robot->reverseStart(0);
@@ -219,5 +216,51 @@ void Commands::startLoop(Pronet08* robot){
         }
 
     }
+};
+
+void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> path, double velocity){
+    Kinematics robotKinematics;
+    
+    // path differentiation on pieces = dl 
+    std::vector<std::vector<double>> differentiatedPath;
+    differentiatedPath.push_back(path[0]);
+    for (int i = 1; i < path.size(); i++){
+        double dS = std::hypot(path[i][0] - path[i-1][0], 
+                               path[i][1] - path[i-1][1], 
+                               path[i][2] - path[i-1][2]); // distance between two adjacent points in path
+        int n;
+        if (ds % robotKinematics.dl == 0) n = dS/robotKinematics.dl;
+        else n = 1 + (dS/robotKinematics.dl); 
+        
+        double t = dS/velocity;
+        double dt = t/n;
+
+        double dSx = (path[i][0] - path[i-1][0])/n; 
+        double dSy = (path[i][1] - path[i-1][1])/n; 
+        double dSz = (path[i][1] - path[i-1][1])/n; 
+
+        for (int j = 1; j < n; j++){
+            if (j != n-1){
+                std::vector<double> point = {dSx * i + path[i-1][0], dSy * i + path[i-1][1], dSz * i + path[i-1][2]};
+                differentiatedPath.push_back(point);
+            } else {
+                std::vector<double> point = {path[i][0], path[i][1], path[i][2]};
+                differentiatedPath.push_back(point);
+            }
+        }
+    }
+    
+    for (int i = 0; i < differentiatedPath.size(); i++){
+        std::cout<<"x: "<<differentiatedPath[i][0]<<"\n"
+                 <<"y: "<<differentiatedPath[i][0]<<"\n"
+                 <<"z: "<<differentiatedPath[i][0]<<"\n";
+    }
+    
+
+    // calculating q for each piece
+
+    // adding together all differenitated pieces
+
+    // executing the robot
 };
 
