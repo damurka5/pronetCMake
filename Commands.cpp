@@ -169,7 +169,7 @@ void Commands::startLoop(Pronet08* robot){
         if (command == "checkServo") {
             std::cout << "Info about each servo below:\n";
             uint16_t data[255] = { 0, };
-            for (size_t i = 0; i < 4; i++){
+            for (int i = 0; i < 4; i++){
                 int status = robot->readActualSpeed(i+1, data);
                 std::cout << "Servo "<<i+1<<" actual speed: "<<data[0]<<"\n";
                 if (status != 0){
@@ -215,12 +215,12 @@ void Commands::startLoop(Pronet08* robot){
             //std::cin >> command;
         }
 
-        if (command == "test") {
-            std::vector<std::vector<double>> path;
-            std::vector<double> zero = { 0, 0, 0 };
-            std::vector<double> p1 = { 1, 0, 0 };
-            pathExecution(robot, path, 1);
-        }
+        //if (command == "test") {
+        //    std::vector<std::vector<double>> path;
+        //    std::vector<double> zero = { 0, 0, 0 };
+        //    std::vector<double> p1 = { 1, 0, 0 };
+        //    pathExecution(robot, path, 1);
+        //}
 
     }
 };

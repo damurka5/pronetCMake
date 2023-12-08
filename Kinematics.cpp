@@ -1,6 +1,6 @@
 #include "Kinematics.h"
 
-Kinematics::Kinematics(double x1=0, double y1=0, double x2=2308, double y2=0, double x3=2308, double y3=2808, double x4=0, double y4=2808, double z=3935){
+Kinematics::Kinematics(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double z){
     this->x1=x1;
     this->x2=x2;
     this->x3=x3;

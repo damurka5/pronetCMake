@@ -14,7 +14,7 @@ class Kinematics
 public:
     double q[4];
     double dl, t;
-
+    //double x1=0, double y1=0, double x2=2308, double y2=0, double x3=2308, double y3=2808, double x4=0, double y4=2808, double z=3935
 	Kinematics(double x1=0, double y1=0, double x2=2308, double y2=0, double x3=2308, double y3=2808, double x4=0, double y4=2808, double z=3935);
 	~Kinematics();
 
