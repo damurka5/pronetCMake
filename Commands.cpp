@@ -237,7 +237,6 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
                           path[i][2] - path[i-1][2]); // distance between two adjacent points in path
         int n;
         n = dS/robotKinematics.dl; 
-        //std::cout << n << "\n";
         
         double t = dS/velocity;
         double dt = t/n;
@@ -258,17 +257,36 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
         }
     }
     
+    //printing values
     for (int i = 0; i < differentiatedPath.size(); i++){
         std::cout<<"x: "<<differentiatedPath[i][0]<<"\n"
                  <<"y: "<<differentiatedPath[i][1]<<"\n"
                  <<"z: "<<differentiatedPath[i][2]<<"\n";
     }
     
-
     // calculating q for each piece
+    uint16_t data[255] = { 0, };
+    int cur_q_su[4];
+
+    for (int i = 0; i < 4; i++){
+        status = robot->readActualPosition(i+1, data);
+        std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n";
+        if (status != 0) std::cout << "Error in position\n";
+        int revolutions = data[0];
+        int pulses = data[2] << 16 | data[1];
+        int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+        cur_q_su[i] = pos;        
+    }
+    
+    robotKinematics.updateServo_q_su(cur_q_su);
+    int cur_q[4];
+    // actual length calculation
+    robotKinematics.updateCableLength(cur_q);
+
+    
+    
 
     // adding together all differenitated pieces
 
     // executing the robot
 };
-
