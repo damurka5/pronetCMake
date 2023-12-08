@@ -236,18 +236,20 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
                           path[i][1] - path[i-1][1], 
                           path[i][2] - path[i-1][2]); // distance between two adjacent points in path
         int n;
-        n = 1 + (dS/robotKinematics.dl); 
+        n = dS/robotKinematics.dl; 
+        //std::cout << n << "\n";
         
         double t = dS/velocity;
         double dt = t/n;
 
         double dSx = (path[i][0] - path[i-1][0])/n; 
+        //std::cout << dSx << "\n";
         double dSy = (path[i][1] - path[i-1][1])/n; 
         double dSz = (path[i][1] - path[i-1][1])/n; 
 
-        for (int j = 1; j < n; j++){
-            if (j != n-1){
-                std::vector<double> point = {dSx * i + path[i-1][0], dSy * i + path[i-1][1], dSz * i + path[i-1][2]};
+        for (int j = 1; j <= n; j++){
+            if (j != n){
+                std::vector<double> point = {dSx * j + path[i-1][0], dSy * j + path[i-1][1], dSz * j + path[i-1][2]};
                 differentiatedPath.push_back(point);
             } else {
                 std::vector<double> point = {path[i][0], path[i][1], path[i][2]};
@@ -258,8 +260,8 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     
     for (int i = 0; i < differentiatedPath.size(); i++){
         std::cout<<"x: "<<differentiatedPath[i][0]<<"\n"
-                 <<"y: "<<differentiatedPath[i][0]<<"\n"
-                 <<"z: "<<differentiatedPath[i][0]<<"\n";
+                 <<"y: "<<differentiatedPath[i][1]<<"\n"
+                 <<"z: "<<differentiatedPath[i][2]<<"\n";
     }
     
 
