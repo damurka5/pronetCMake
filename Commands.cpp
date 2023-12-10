@@ -26,14 +26,10 @@ void Commands::startLoop(Pronet08* robot){
             robot->closeSerialPort();
             exit = true;
             break;
-        };
-
-        if (command == "start") {
+        } else if (command == "start") {
             std::cout<<"Loop is started \nEnter the command connect to connect the robot:\n";
             std::cin >> command;
-        };
-
-        if (command == "connect"){
+        } else if (command == "connect"){
             std::cout<<"Enter comPort below:\n";
             int comPort;
             std::cin>>comPort;
@@ -46,9 +42,7 @@ void Commands::startLoop(Pronet08* robot){
                 connected = true;
                 std::cin>>command;
             }
-        }
-
-        if (command == "servoOn"){
+        } else if (command == "servoOn"){
             if (!connected){
                 std::cout<<"Robot is NOT connected\n";
             } else {
@@ -75,9 +69,7 @@ void Commands::startLoop(Pronet08* robot){
                 }
             }
             std::cin>>command;
-        }
-
-        if (command == "servoOff"){
+        } else if (command == "servoOff"){
             if (!connected){
                 std::cout<<"Robot is NOT connected\n";
             } else {
@@ -103,9 +95,7 @@ void Commands::startLoop(Pronet08* robot){
                 }
             }
             std::cin>>command;
-        }
-
-        if (command == "setSpeed"){
+        } else if (command == "setSpeed"){
             if (!connected){
                     std::cout<<"Robot is NOT connected\n";
                 } else {
@@ -122,9 +112,7 @@ void Commands::startLoop(Pronet08* robot){
                     }
                 }
             std::cin>>command;
-        }
-
-        if (command == "forward") {
+        } else if (command == "forward") {
              if (!connected){
                     std::cout<<"Robot is NOT connected\n";
                 } else {
@@ -136,9 +124,7 @@ void Commands::startLoop(Pronet08* robot){
                     else std::cout<<"Error in rotation "<<n<<"\n";
                 }
              std::cin >> command;
-        }
-
-        if (command == "reverse") {
+        } else if (command == "reverse") {
              if (!connected){
                     std::cout<<"Robot is NOT connected\n";
                 } else {
@@ -150,23 +136,17 @@ void Commands::startLoop(Pronet08* robot){
                     else std::cout<<"Error in rotation "<<n<<"\n";
                 }
              std::cin >> command;
-        }
-
-        if (command == "reset") {
+        } else if (command == "reset") {
             int status = robot->resetCommunicationSettings(0);
             if (status != 0) std::cout << "Error while reseting\n";
             else std::cout << "Reseted\n";
             std::cin >> command;
-        }
-
-        if (command == "stop") {
+        } else if (command == "stop") {
             int status = robot->stopRotation(0);
             if (status != 0) std::cout << "Error while stopping\n";
             else std::cout << "Stopped\n";
             std::cin >> command;
-        }
-
-        if (command == "checkServo") {
+        } else if (command == "checkServo") {
             std::cout << "Info about each servo below:\n";
             uint16_t data[255] = { 0, };
             for (int i = 0; i < 4; i++){
@@ -189,9 +169,7 @@ void Commands::startLoop(Pronet08* robot){
                 }
             }
             std::cin >> command;
-        }
-        
-        if (command == "run5sec") {
+        } else if (command == "run5sec") {
             int oneSec = 1000;
             int status = robot->forwardStart(0);
             if (status == 0) std::cout<<"Forward rotation started\n";
@@ -213,14 +191,10 @@ void Commands::startLoop(Pronet08* robot){
             //if (status == 0) std::cout<<"Stopped\n";
             //else std::cout<<"Error in stopping\n";
             //std::cin >> command;
+        } else {
+            std::cout<<"Unknown command, please enter new command\n";
+            std::cin >> command;
         }
-
-        //if (command == "test") {
-        //    std::vector<std::vector<double>> path;
-        //    std::vector<double> zero = { 0, 0, 0 };
-        //    std::vector<double> p1 = { 1, 0, 0 };
-        //    pathExecution(robot, path, 1);
-        //}
 
     }
 };
@@ -230,7 +204,9 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     
     // path differentiation on pieces = dl 
     std::vector<std::vector<double>> differentiatedPath;
+    std::vector<std::vector<double>> timeIntervals;
     differentiatedPath.push_back(path[0]);
+    timeIntervals.push_back(0); // time to reach zero position
     for (int i = 1; i < path.size(); i++){
         double dS = hypot(path[i][0] - path[i-1][0], 
                           path[i][1] - path[i-1][1], 
@@ -250,9 +226,11 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
             if (j != n){
                 std::vector<double> point = {dSx * j + path[i-1][0], dSy * j + path[i-1][1], dSz * j + path[i-1][2]};
                 differentiatedPath.push_back(point);
+                timeIntervals.push_back(dt); // adding dt corresponding to each path slice
             } else {
                 std::vector<double> point = {path[i][0], path[i][1], path[i][2]};
                 differentiatedPath.push_back(point);
+                timeIntervals.push_back(dt * hypot(point[0]-dSx, point[1]-dSy, point[2]-dSz)); // adding last dt (a bit bigger than others)
             }
         }
     }
@@ -278,15 +256,42 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
         cur_q_su[i] = pos;        
     }
     
-    robotKinematics.updateServo_q_su(cur_q_su);
-    int cur_q[4];
+    // should correspond to zero position
+    robotKinematics.updateServo_q0_su(cur_q_su);
+    int cur_l[4];
     // actual length calculation
-    robotKinematics.updateCableLength(cur_q);
+    robotKinematics.updateCableLength(cur_l);
 
-    
-    
+    std::vector<std::vector<int>> states; // (q1,q2,q3,q4, w1,w2,w3,w4), q in servo frame, w in servo frame
 
-    // adding together all differenitated pieces
+    for (int i = 0; i < differentiatedPath.size(); i++){
+        // convert (x,y,z) to (q1,q2,q3,q4)
+        std::vector<int> state;
+        std::vector<int> l;
+        std::vector<int> q;
+        std::vector<int> q_dot;
+
+        //calculating q
+        l = robotKinematics.getInverseKinematics(differentiatedPath[i][0], differentiatedPath[i][1], differentiatedPath[i][2]);
+        q = robotKinematics.getQfromL(l);
+        for (int j = 0; j < 3; j++){
+            state.push_back(q[i]);
+        }
+        
+        //calculating q_dot
+        if (i == 0){
+            for (int j = 0; j < 3; j++){
+                state.push_back(0);
+            }
+        } else {
+            // TODO: check negative speed
+            for (int j = 0; j < 3; j++){
+                int omega_i = (state[j] - states[i-1][j])/timeIntervals[i]; // in servo frame (q dot)
+                state.push_back(omega_i/robotKinematics.coeff_speed_to_dq); // convertion from servo frame (q dot) to speed in program units
+            }
+        }
+
+    }
 
     // executing the robot
 };
