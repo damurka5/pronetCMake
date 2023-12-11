@@ -11,7 +11,8 @@ Pronet08::Pronet08(int comPort, int baudRate, int byteSize,
 
 Pronet08::~Pronet08()
 {
-
+	this->stopRotation(0);
+	this->servoOff(0);
 }
 
 int Pronet08::clearCurrentAlarm(int id)

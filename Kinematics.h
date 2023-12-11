@@ -14,7 +14,7 @@ class Kinematics
 public:
     int l[4]; // in mm
     int q_su[4]; // in servo units
-    int q0_su[4] = {26, 18, 34, 30}; //TODO: need to change!!! in servo units
+    int q0_su[4] = {9081, 6373, 12040, 10708}; // in servo units
     int l0[4] = {3624, 3624, 3624, 3624}; // in mm
     int dq[4] = {0, 0, 0, 0};
     double dl, t, q_to_l_coeff, speedRPM, speedL, speedQ, coeff_speed_to_dq;

@@ -134,6 +134,8 @@ void Commands::startLoop(Pronet08* robot){
                     int status = robot->reverseStart(n);
                     if (status == 0) std::cout<<"Reverse rotation started "<<n<<"\n";
                     else std::cout<<"Error in rotation "<<n<<"\n";
+
+                    
                 }
              std::cin >> command;
         } else if (command == "reset") {
@@ -146,27 +148,33 @@ void Commands::startLoop(Pronet08* robot){
             if (status != 0) std::cout << "Error while stopping\n";
             else std::cout << "Stopped\n";
             std::cin >> command;
-        } else if (command == "checkServo") {
+        }
+        else if (command == "checkServo") {
             std::cout << "Info about each servo below:\n";
             uint16_t data[255] = { 0, };
-            for (int i = 0; i < 4; i++){
-                int status = robot->readActualSpeed(i+1, data);
-                std::cout << "Servo "<<i+1<<" actual speed: "<<data[0]<<"\n";
-                if (status != 0){
+            for (int i = 0; i < 4; i++) {
+                int status = robot->readActualSpeed(i + 1, data);
+                std::cout << "Servo " << i + 1 << " actual speed: " << data[0] << "\n";
+                if (status != 0) {
                     std::cout << "Error in actual speed\n";
                 }
 
-                status = robot->readSetSpeed(i+1, data);
-                std::cout << "Servo "<<i+1<<" setted speed: "<<data[0] << "\n";
-                if (status != 0){
+                status = robot->readSetSpeed(i + 1, data);
+                std::cout << "Servo " << i + 1 << " setted speed: " << data[0] << "\n";
+                if (status != 0) {
                     std::cout << "Error in setted speed\n";
                 }
 
-                status = robot->readActualPosition(i+1, data);
-                std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n";
-                if (status != 0){
-                    std::cout << "Error in position\n";
-                }
+                status = robot->readActualPosition(i + 1, data);
+                // Uncomment in Innopark
+
+                status = robot->readActualPosition(i + 1, data);
+                /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
+                if (status != 0) std::cout << "Error in position\n";
+                int revolutions = data[0];
+                int pulses = data[2] << 16 | data[1];
+                int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+                std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
             }
             std::cin >> command;
         } else if (command == "run5sec") {
@@ -191,6 +199,86 @@ void Commands::startLoop(Pronet08* robot){
             //if (status == 0) std::cout<<"Stopped\n";
             //else std::cout<<"Error in stopping\n";
             //std::cin >> command;
+        } else if (command == "test") {
+            // test to move robot up for 13 mm
+            Kinematics robotKinematics;
+            double t = 2; // 2 secs to move
+            robotKinematics.coeff_speed_to_dq = 31.6; 
+            robotKinematics.q_to_l_coeff = -1/48;
+            robotKinematics.dl = 50;
+
+            int dest_mm[3] = { 0, 0, 13 };
+            int dest_su[4] = { 9714, 7004, 12672, 11340 };
+
+            //uint16_t data[255] = { 0, };
+            //int currPos[4];
+            //for (int i = 0; i < 4; i++)
+            //{
+            //    int status = robot->readActualPosition(i + 1, data);
+            //    /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
+            //    if (status != 0) std::cout << "Error in position\n";
+            //    int revolutions = data[0];
+            //    int pulses = data[2] << 16 | data[1];
+            //    int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+            //    //std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
+            //}
+
+            bool reached = false;
+            bool servoReached[4] = { false, false, false, false };
+            int status;
+            robot->forwardStart(0);
+
+            // while not reached the destination point
+            while (!reached) {
+                uint16_t data[255] = { 0, };
+                //int currPos[4];
+                //for (int i = 0; i < 4; i++)
+                //{
+                //    int status = robot->readActualPosition(i + 1, data);
+                //    /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
+                //    if (status != 0) std::cout << "Error in position\n";
+                //    int revolutions = data[0];
+                //    int pulses = data[2] << 16 | data[1];
+                //    int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+                //    std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
+                //}
+                //std::cout << "------------------\n";
+
+                for (int i = 0; i < 4; i++)
+                {
+                    if (!servoReached[i]) {
+                        status = robot->readActualPosition(i + 1, data);
+                        /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
+                        if (status != 0) std::cout << "Error in position\n";
+                        int revolutions = data[0];
+                        int pulses = data[2] << 16 | data[1];
+                        int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+                        std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
+                        if (pos >= dest_su[i] - FAULT) {
+                            robot->setSpeed(i + 1, 0);
+                            std::cout << "servo " << i + 1 << " reached the point\n";
+                            servoReached[i] = true;
+                        }
+                    }
+                    
+                }
+                std::cout << "--------------\n";
+                int c = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    if (servoReached[i]) {
+                        c += 1;
+                    }
+                }
+                if (c == 4) {
+                    reached = true;
+                }
+                //if (status != 0) break;
+            }
+            std::cout << "Full stop, reached the target\n";
+            robot->stopRotation(0);
+
+            std::cin >> command;
         } else {
             std::cout<<"Unknown command, please enter new command\n";
             std::cin >> command;
