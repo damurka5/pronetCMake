@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 
+#define PULSESREV 131071
+#define DEVIDER 364.1
+
 class Commands
 {
 public:

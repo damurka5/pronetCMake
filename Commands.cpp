@@ -183,7 +183,17 @@ void Commands::startLoop(Pronet08* robot){
                 }
 
                 status = robot->readActualPosition(i+1, data);
-                std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n";
+                // Uncomment in Innopark
+                for (int i = 0; i < 4; i++){
+                    int status = robot->readActualPosition(i+1, data);
+                    /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
+                    if (status != 0) std::cout << "Error in position\n";
+                    int revolutions = data[0];
+                    int pulses = data[2] << 16 | data[1];
+                    int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+                    std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
+                }
+                
                 if (status != 0){
                     std::cout << "Error in position\n";
                 }
@@ -225,12 +235,12 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     std::vector<std::vector<double>> differentiatedPath;
     differentiatedPath.push_back(path[0]);
     for (int i = 1; i < path.size(); i++){
-        double dS = std::hypot(path[i][0] - path[i-1][0], 
+        double dS = hypot(path[i][0] - path[i-1][0], 
                                path[i][1] - path[i-1][1], 
                                path[i][2] - path[i-1][2]); // distance between two adjacent points in path
+
         int n;
-        if (ds % robotKinematics.dl == 0) n = dS/robotKinematics.dl;
-        else n = 1 + (dS/robotKinematics.dl); 
+        n = dS / robotKinematics.dl;
         
         double t = dS/velocity;
         double dt = t/n;
