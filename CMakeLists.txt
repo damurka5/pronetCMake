@@ -12,7 +12,8 @@ endif()
 project ("pronetCMake")
 
 # Добавьте источник в исполняемый файл этого проекта.
-add_executable (pronetCMake "main.cpp" "Pronet08.h")
+add_executable (pronetCMake "main.cpp" "Commands.cpp" "Pronet08.cpp" "ModbusRtu.cpp" "Serial.cpp" "Kinematics.cpp"
+"Pronet08.h"  "Commands.h" "Pronet08.h" "ModbusRtu.h" "Serial.h" "Kinematics.h")
 # add_executable (pronetCMake "pronetCMake.cpp" "pronetCMake.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
