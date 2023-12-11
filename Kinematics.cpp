@@ -77,19 +77,19 @@ void Kinematics::updateServo_q_su(int new_q[4]){
 // in mm, calculated new length for each cable given servo positions
 void Kinematics::updateCableLength(int new_q[4]){
     for (int i = 0; i < 4; i++){
-        this->l[i] = this->l0[i] + (new_q[i] - this->q0_su[i]  ) * this->q_to_l_coeff; //TODO: check the sign
+        this->l[i] = this->l0[i] + (new_q[i] - this->q0_su[i]  ) / this->l_to_q_coeff; //TODO: check the sign
     }
 };
 
 // coefficient setter; coefficient translates servo units to mm
 void Kinematics::setCoeff(double coeff){
-    this->q_to_l_coeff = coeff;
+    this->l_to_q_coeff = coeff;
 };
 
 std::vector<int> Kinematics::getQfromL(std::vector<int> l){
     std::vector<int> q;
     for (int i = 0; i < 4; i++){
-        int q_i = this->q0_su[i] + ( this->l0[i] - l[i]) / this->q_to_l_coeff; // TODO: check the sign
+        int q_i = this->q0_su[i] + ( this->l0[i] - l[i]) * this->l_to_q_coeff; // TODO: check the sign
         q.push_back(q_i);
     }
     return q;

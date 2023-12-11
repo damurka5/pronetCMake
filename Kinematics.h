@@ -15,11 +15,11 @@ public:
     int l[4]; // in mm
     int q_su[4]; // in servo units
     int q0_su[4] = {9081, 6373, 12040, 10708}; // in servo units
-    int l0[4] = {3624, 3624, 3624, 3624}; // in mm
+    int l0[4] = {3780, 3780, 3780, 3780 }; // in mm
     int dq[4] = {0, 0, 0, 0};
-    double dl, t, q_to_l_coeff, speedRPM, speedL, speedQ, coeff_speed_to_dq;
+    double dl, t, l_to_q_coeff, speedRPM, speedL, speedQ, coeff_speed_to_dq;
     //double x1=0, double y1=0, double x2=2308, double y2=0, double x3=2308, double y3=2808, double x4=0, double y4=2808, double z=3935
-	Kinematics(double x1=0, double y1=0, double x2=2308, double y2=0, double x3=2308, double y3=2808, double x4=0, double y4=2808, double z=3935);
+	Kinematics(double x1=-1154, double y1=-1404, double x2=1154, double y2=-1404, double x3=1154, double y3=1404, double x4=-1154, double y4=1404, double z=3315);
 	~Kinematics();
 
     int calculateInverseKinematics(double x, double y, double z);

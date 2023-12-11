@@ -203,78 +203,65 @@ void Commands::startLoop(Pronet08* robot){
             // test to move robot up for 13 mm
             Kinematics robotKinematics;
             double t = 2; // 2 secs to move
-            robotKinematics.coeff_speed_to_dq = 31.6; 
-            robotKinematics.q_to_l_coeff = -1/48;
+            robotKinematics.coeff_speed_to_dq = 6.32; 
+            robotKinematics.l_to_q_coeff = 57.45;
             robotKinematics.dl = 50;
 
-            int dest_mm[3] = { 0, 0, 13 };
-            int dest_su[4] = { 9714, 7004, 12672, 11340 };
+            int dest_mm[3] = { 0, 0, 145 };
 
-            //uint16_t data[255] = { 0, };
-            //int currPos[4];
-            //for (int i = 0; i < 4; i++)
-            //{
-            //    int status = robot->readActualPosition(i + 1, data);
-            //    /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
-            //    if (status != 0) std::cout << "Error in position\n";
-            //    int revolutions = data[0];
-            //    int pulses = data[2] << 16 | data[1];
-            //    int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
-            //    //std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
-            //}
+            std::vector<int> cableLength = robotKinematics.getInverseKinematics(dest_mm[0], dest_mm[1], dest_mm[2]);
+            for (int j = 0; j < 4; j++)
+            {
+                std::cout << "l" << j << " is " << cableLength[j] << "\n";
+            }
+
+            std::vector<int> q = robotKinematics.getQfromL(cableLength);
+            for (int j = 0; j < 4; j++)
+            {
+                std::cout << "q" << j << " is " << q[j] << "\n";
+            }
+
+
+            int dest_su[4] = { 9714, 7004, 12672, 11340 };
 
             bool reached = false;
             bool servoReached[4] = { false, false, false, false };
             int status;
-            robot->forwardStart(0);
+            //robot->forwardStart(0);
 
-            // while not reached the destination point
-            while (!reached) {
-                uint16_t data[255] = { 0, };
-                //int currPos[4];
-                //for (int i = 0; i < 4; i++)
-                //{
-                //    int status = robot->readActualPosition(i + 1, data);
-                //    /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
-                //    if (status != 0) std::cout << "Error in position\n";
-                //    int revolutions = data[0];
-                //    int pulses = data[2] << 16 | data[1];
-                //    int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
-                //    std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
-                //}
-                //std::cout << "------------------\n";
-
-                for (int i = 0; i < 4; i++)
-                {
-                    if (!servoReached[i]) {
-                        status = robot->readActualPosition(i + 1, data);
-                        /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
-                        if (status != 0) std::cout << "Error in position\n";
-                        int revolutions = data[0];
-                        int pulses = data[2] << 16 | data[1];
-                        int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
-                        std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
-                        if (pos >= dest_su[i] - FAULT) {
-                            robot->setSpeed(i + 1, 0);
-                            std::cout << "servo " << i + 1 << " reached the point\n";
-                            servoReached[i] = true;
-                        }
-                    }
-                    
-                }
-                std::cout << "--------------\n";
-                int c = 0;
-                for (int i = 0; i < 4; i++)
-                {
-                    if (servoReached[i]) {
-                        c += 1;
-                    }
-                }
-                if (c == 4) {
-                    reached = true;
-                }
+            //// while not reached the destination point
+            //while (!reached) {
+            //    uint16_t data[255] = { 0, };
+            //    for (int i = 0; i < 4; i++)
+            //    {
+            //        if (!servoReached[i]) {
+            //            status = robot->readActualPosition(i + 1, data);
+            //            /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
+            //            if (status != 0) std::cout << "Error in position\n";
+            //            int revolutions = data[0];
+            //            int pulses = data[2] << 16 | data[1];
+            //            int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+            //            //std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
+            //            if (pos >= dest_su[i] - FAULT) {
+            //                robot->setSpeed(i + 1, 0);
+            //                std::cout << "servo " << i + 1 << " reached the point\n";
+            //                servoReached[i] = true;
+            //            }
+            //        }
+            //        
+            //    }
+            //    int c = 0;
+            //    for (int i = 0; i < 4; i++)
+            //    {
+            //        if (servoReached[i]) {
+            //            c += 1;
+            //        }
+            //    }
+            //    if (c == 4) {
+            //        reached = true;
+            //    }
                 //if (status != 0) break;
-            }
+            //}
             std::cout << "Full stop, reached the target\n";
             robot->stopRotation(0);
 
@@ -290,7 +277,7 @@ void Commands::startLoop(Pronet08* robot){
 void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> path, double velocity){
     Kinematics robotKinematics;
     robotKinematics.coeff_speed_to_dq = 2; //TODO: get coeffs 
-    robotKinematics.q_to_l_coeff = -1.1;
+    robotKinematics.l_to_q_coeff = -1.1;
     robotKinematics.dl = 50;
     
     // path differentiation on pieces = dl 
