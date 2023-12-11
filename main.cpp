@@ -11,7 +11,8 @@ int main(int argc, char *argv[])
     std::vector<double> p1 = { 0, 0, 100 };
     std::vector<double> p2 = { 0, 0, 251 };
     std::vector<std::vector<double>> path = {zero, p1};
-    console->pathExecution(pronet, path, 10);
+    //console->pathExecution(pronet, path, 10);
+    console->startLoop(pronet, path, 10);
 
    return 0;
 }

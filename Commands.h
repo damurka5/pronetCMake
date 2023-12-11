@@ -13,7 +13,7 @@ public:
 	Commands();
 	~Commands();
 
-    void startLoop(Pronet08* robot);
+    void startLoop(Pronet08* robot, std::vector<std::vector<double>> path, double velocity);
 
     void pathExecution(Pronet08* robot, std::vector<std::vector<double>> path, double velocity);
     
