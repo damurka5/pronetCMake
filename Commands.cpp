@@ -201,10 +201,13 @@ void Commands::startLoop(Pronet08* robot){
 
 void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> path, double velocity){
     Kinematics robotKinematics;
+    robotKinematics.coeff_speed_to_dq = 2; //TODO: get coeffs 
+    robotKinematics.q_to_l_coeff = -1.1;
+    robotKinematics.dl = 50;
     
     // path differentiation on pieces = dl 
     std::vector<std::vector<double>> differentiatedPath;
-    std::vector<std::vector<double>> timeIntervals;
+    std::vector<double> timeIntervals;
     differentiatedPath.push_back(path[0]);
     timeIntervals.push_back(0); // time to reach zero position
     for (int i = 1; i < path.size(); i++){
@@ -220,7 +223,8 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
         double dSx = (path[i][0] - path[i-1][0])/n; 
         //std::cout << dSx << "\n";
         double dSy = (path[i][1] - path[i-1][1])/n; 
-        double dSz = (path[i][1] - path[i-1][1])/n; 
+        double dSz = (path[i][2] - path[i-1][2])/n; 
+        //std::cout << n << "\n";
 
         for (int j = 1; j <= n; j++){
             if (j != n){
@@ -244,23 +248,25 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     
     // calculating q for each piece
     uint16_t data[255] = { 0, };
-    int cur_q_su[4];
+    int cur_q_su[4] = { 26, 18, 34, 30 }; // q0_su
 
-    for (int i = 0; i < 4; i++){
-        status = robot->readActualPosition(i+1, data);
+    // Uncomment in Innopark
+    /*for (int i = 0; i < 4; i++){
+        int status = robot->readActualPosition(i+1, data);
         std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n";
         if (status != 0) std::cout << "Error in position\n";
         int revolutions = data[0];
         int pulses = data[2] << 16 | data[1];
         int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
         cur_q_su[i] = pos;        
-    }
-    
+    }*/
+
     // should correspond to zero position
     robotKinematics.updateServo_q0_su(cur_q_su);
     int cur_l[4];
     // actual length calculation
     robotKinematics.updateCableLength(cur_l);
+    std::cout << "updated\n";
 
     std::vector<std::vector<int>> states; // (q1,q2,q3,q4, w1,w2,w3,w4), q in servo frame, w in servo frame
 
@@ -273,24 +279,38 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
 
         //calculating q
         l = robotKinematics.getInverseKinematics(differentiatedPath[i][0], differentiatedPath[i][1], differentiatedPath[i][2]);
+        //printing length of cables after inverse kinematics
+        for (int j = 0; j < 4; j++)
+        {
+            std::cout << "l" << j << " is " << l[j] << "\n";
+        }
+        
         q = robotKinematics.getQfromL(l);
-        for (int j = 0; j < 3; j++){
+        for (int j = 0; j < 4; j++){
             state.push_back(q[i]);
         }
         
         //calculating q_dot
         if (i == 0){
-            for (int j = 0; j < 3; j++){
+            for (int j = 0; j < 4; j++){
                 state.push_back(0);
             }
         } else {
             // TODO: check negative speed
-            for (int j = 0; j < 3; j++){
+            for (int j = 0; j < 4; j++){
                 int omega_i = (state[j] - states[i-1][j])/timeIntervals[i]; // in servo frame (q dot)
                 state.push_back(omega_i/robotKinematics.coeff_speed_to_dq); // convertion from servo frame (q dot) to speed in program units
             }
         }
-
+        states.push_back(state);
+    }
+    std::cout << "states added\n";
+    for (int i = 0; i < states.size(); i++){
+        std::cout << "Point " << i << "\n";
+        for (int j = 0; j < states[i].size(); j++){
+            std::cout << "q" << j << ": " << states[i][j] << " ";
+        }
+        std::cout << "\n";
     }
 
     // executing the robot
