@@ -269,6 +269,7 @@ void Commands::startLoop(Pronet08* robot, std::vector<std::vector<double>> path,
         }
         else if (command == "path") {
             pathExecution(robot, path, velocity);
+            std::cin >> command;
         }
         else {
             std::cout<<"Unknown command, please enter new command\n";
@@ -396,24 +397,35 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
         std::cout << timeIntervals[i] << "\n";
     }
 
+    std::string command;
+    std::cin>>command; 
+    std::cout << "Type yes to execute\n";
+    if (command != "yes") return;
     // executing the robot
 
-    for (int i = 1; i < states.size(); i++)
-    {
+    for (int i = 1; i < states.size(); i++){
         bool reached = false;
         bool servoReached[4] = { false, false, false, false };
         int status;
-        for (int j = 0; j < 4; j++)
-        {
+        for (int j = 0; j < 4; j++){
             robot->setSpeed(j + 1, states[i][j+4]);
         }
-        robot->forwardStart(0);
+        std::cout<<"Point #"<<i<<" execution\n";
+        // robot->forwardStart(0);
+        // check if speed negative
+        for (int j = 0; j < 4; j++){
+            if (states[i][j+4] >= 0){
+                robot->forwardStart(j+1);
+            } else {
+                robot->reverseStart(j+1);
+            }
+        }
+        
 
         // while not reached the destination point
         while (!reached) {
             uint16_t data[255] = { 0, };
-            for (int j = 0; j < 4; j++)
-            {
+            for (int j = 0; j < 4; j++) {
                 if (!servoReached[j]) {
                     status = robot->readActualPosition(j + 1, data);
                     /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
@@ -422,17 +434,15 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
                     int pulses = data[2] << 16 | data[1];
                     int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
                     //std::cout << "Servo " << i + 1 << " actual position: " << pos << "\n";
-                    if (pos >= states[i][j] - FAULT) {
+                    if (pos >= states[i][j] - FAULT && pos <= states[i][j] + FAULT) { // if servo lies in between -FAULT to +FAULT it has reached the point 
                         robot->setSpeed(j + 1, 0);
                         std::cout << "servo " << j + 1 << " reached the point\n";
                         servoReached[j] = true;
                     }
                 }
-                
             }
             int c = 0;
-            for (int j = 0; j < 4; j++)
-            {
+            for (int j = 0; j < 4; j++){
                 if (servoReached[j]) {
                     c += 1;
                 }
@@ -440,9 +450,8 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
             if (c == 4) {
                 reached = true;
             }
-            if (status != 0) break;
+            // if (status != 0) break;
         }
-      
         robot->stopRotation(0);
     }
 };
