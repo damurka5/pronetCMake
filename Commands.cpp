@@ -283,7 +283,7 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     Kinematics robotKinematics;
     robotKinematics.coeff_speed_to_dq = 6.32;
     robotKinematics.l_to_q_coeff = 57.45;
-    robotKinematics.dl = 50;
+    robotKinematics.dl = 200;
     
     // path differentiation on pieces = dl 
     std::vector<std::vector<double>> differentiatedPath;
@@ -314,7 +314,7 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
             } else {
                 std::vector<double> point = {path[i][0], path[i][1], path[i][2]};
                 differentiatedPath.push_back(point);
-                timeIntervals.push_back(dt * hypot(point[0]-dSx, point[1]-dSy, point[2]-dSz)/robotKinematics.dl); // adding last dt (a bit bigger than others)
+                timeIntervals.push_back(dt * hypot(point[0]- path[i - 1][0] - dSx*(j-1), point[1] - path[i - 1][1] - dSy*(j-1), point[2] - path[i - 1][2] - dSz*(j-1))/robotKinematics.dl); // adding last dt (a bit bigger than others)
             }
         }
     }
@@ -328,7 +328,7 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     
     // calculating q for each piece
     uint16_t data[255] = { 0, };
-    int cur_q_su[4] = { 9081, 6373, 12040, 10708 }; // q0_su
+    int cur_q_su[4] = { 13923, 11202, 16636, 15395 }; // q0_su
 
     // Uncomment in Innopark
     for (int i = 0; i < 4; i++){
@@ -379,7 +379,12 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
             // TODO: check negative speed
             for (int j = 0; j < 4; j++){
                 int omega_i = (state[j] - states[i-1][j])/timeIntervals[i]; // in servo frame (q dot)
-                state.push_back(omega_i/robotKinematics.coeff_speed_to_dq); // convertion from servo frame (q dot) to speed in program units
+                if (omega_i < 0) {
+                    state.push_back(0.89 * omega_i / robotKinematics.coeff_speed_to_dq);
+                }
+                else {
+                    state.push_back(omega_i / robotKinematics.coeff_speed_to_dq); // convertion from servo frame (q dot) to speed in program units
+                }
             }
         }
         states.push_back(state);
@@ -404,13 +409,18 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
     // executing the robot
 
     for (int i = 1; i < states.size(); i++){
-        bool reached = false;
-        bool servoReached[4] = { false, false, false, false };
-        int status;
+        //bool reached = false;
+        //bool servoReached[4] = { false, false, false, false };
+        //int status;
         for (int j = 0; j < 4; j++){
-            robot->setSpeed(j + 1, states[i][j+4]);
+            if (states[i][j + 4] >= 0) {
+                robot->setSpeed(j + 1, states[i][j + 4]);
+            }
+            else {
+                robot->setSpeed(j + 1, -1 * states[i][j + 4]);
+            }
         }
-        std::cout<<"Point #"<<i<<" execution\n";
+        //std::cout<<"Point #"<<i<<" execution\n";
         // robot->forwardStart(0);
         // check if speed negative
         for (int j = 0; j < 4; j++){
@@ -422,7 +432,7 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
         }
 
         // path execution by time
-        Sleep((timeIntervals[i]*1000)-10);
+        Sleep((timeIntervals[i]*1000)-29);
         
         // path execution by position - PROBLEMS
         // while not reached the destination point
@@ -457,16 +467,21 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
         //}
         robot->stopRotation(0);
 
-            for (int j = 0; j < 4; j++) {
-               if (!servoReached[j]) {
-                   status = robot->readActualPosition(j + 1, data);
-                   /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
-                   if (status != 0) std::cout << "Error in position\n";
-                   int revolutions = data[0];
-                   int pulses = data[2] << 16 | data[1];
-                   int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
-                   std::cout << "Servo " << j + 1 << " actual position: " << pos << "\n";
-               }
-           }
+           // for (int j = 0; j < 4; j++) {
+           //        int status = robot->readActualPosition(j + 1, data);
+           //        /*std::cout << "Servo " << i + 1 << " actual position: " << data[0] << "\n"*/;
+           //        if (status != 0) std::cout << "Error in position\n";
+           //        int revolutions = data[0];
+           //        int pulses = data[2] << 16 | data[1];
+           //        int pos = round((revolutions * PULSESREV + pulses) / DEVIDER);
+           //        std::cout << "Servo " << j + 1 << " actual position: " << pos << "\n";
+
+           //        status = robot->readSetSpeed(j + 1, data);
+           //        std::cout << "Servo " << j + 1 << " setted speed: " << data[0] << "\n";
+           //        if (status != 0) {
+           //            std::cout << "Error in setted speed\n";
+           //        }
+           //   
+           //}
     }
 };

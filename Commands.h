@@ -5,7 +5,7 @@
 
 #define PULSESREV 131071
 #define DEVIDER 364.1
-#define FAULT 25
+#define FAULT 35
 
 class Commands
 {
