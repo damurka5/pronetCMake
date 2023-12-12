@@ -380,7 +380,7 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
             for (int j = 0; j < 4; j++){
                 int omega_i = (state[j] - states[i-1][j])/timeIntervals[i]; // in servo frame (q dot)
                 if (omega_i < 0) {
-                    state.push_back(0.89 * omega_i / robotKinematics.coeff_speed_to_dq);
+                    state.push_back(0.98 * omega_i / robotKinematics.coeff_speed_to_dq);
                 }
                 else {
                     state.push_back(omega_i / robotKinematics.coeff_speed_to_dq); // convertion from servo frame (q dot) to speed in program units
@@ -465,7 +465,11 @@ void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> p
         //    }
         //    if (status != 0) break;
         //}
-        robot->stopRotation(0);
+        for (int j = 0; j < 4; j++)
+        {
+            robot->stopRotation(j+1);
+        }
+        
 
            // for (int j = 0; j < 4; j++) {
            //        int status = robot->readActualPosition(j + 1, data);
