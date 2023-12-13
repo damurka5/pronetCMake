@@ -271,6 +271,10 @@ void Commands::startLoop(Pronet08* robot, std::vector<std::vector<double>> path,
             pathExecution(robot, path, velocity);
             std::cin >> command;
         }
+        else if (command == "pointExecution") {
+            pointExecution(robot);
+            std::cin >> command;
+        }
         else {
             std::cout<<"Unknown command, please enter new command\n";
             std::cin >> command;
@@ -278,6 +282,10 @@ void Commands::startLoop(Pronet08* robot, std::vector<std::vector<double>> path,
 
     }
 };
+
+void Commands::pointExecution(Pronet08* robot) {
+
+}
 
 void Commands::pathExecution(Pronet08* robot, std::vector<std::vector<double>> path, double velocity){
     Kinematics robotKinematics;
