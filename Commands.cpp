@@ -268,7 +268,7 @@ void Commands::pathExecution(Pronet08 *robot, std::vector<std::vector<double>> p
     // path differentiation on pieces = dl
     std::vector<std::vector<double>> differentiatedPath;
     std::vector<double> timeIntervals;
-    pathDifferentiation(path, velocity, differentiatedPath, timeIntervals); // TODO: check correctness
+    pathDifferentiation(path, velocity, differentiatedPath, timeIntervals, &robotKinematics); // TODO: check correctness
 
     // printing values
     for (int i = 0; i < differentiatedPath.size(); i++)
@@ -279,11 +279,11 @@ void Commands::pathExecution(Pronet08 *robot, std::vector<std::vector<double>> p
                   << "z: " << differentiatedPath[i][2] << "\n";
     }
 
-    setNewZeroPosition(robot, robotKinematics);
+    setNewZeroPosition(robot, &robotKinematics);
 
     // calculating q for each piece
     std::vector<std::vector<int>> states; // (q1,q2,q3,q4, w1,w2,w3,w4), q in servo frame, w in servo frame
-    cartesianToRobotFrame(differentiatedPath, timeIntervals, states);
+    cartesianToRobotFrame(differentiatedPath, timeIntervals, states, &robotKinematics);
 
     std::cout << "Type yes to execute\n";
     std::string command;
@@ -292,12 +292,12 @@ void Commands::pathExecution(Pronet08 *robot, std::vector<std::vector<double>> p
         return;
 
     // executing the robot
-    executePathTraversal(robot, states);
+    executePathTraversal(robot, states, timeIntervals);
 
     //checkAllServos(robot);
 };
 
-void Commands::pathDifferentiation(std::vector<std::vector<double>> path, double velocity, std::vector<std::vector<double>> &differentiatedPath, std::vector<double> &timeIntervals)
+void Commands::pathDifferentiation(std::vector<std::vector<double>> path, double velocity, std::vector<std::vector<double>> &differentiatedPath, std::vector<double> &timeIntervals, Kinematics *robotKinematics)
 {
     differentiatedPath.push_back(path[0]);
     timeIntervals.push_back(0); // time to reach zero position
@@ -307,7 +307,7 @@ void Commands::pathDifferentiation(std::vector<std::vector<double>> path, double
                           path[i][1] - path[i - 1][1],
                           path[i][2] - path[i - 1][2]); // distance between two adjacent points in path
         int n;
-        n = dS / robotKinematics.dl;
+        n = dS / robotKinematics->dl;
 
         double t = dS / velocity;
         double dt = t / n;
@@ -330,7 +330,7 @@ void Commands::pathDifferentiation(std::vector<std::vector<double>> path, double
             {
                 std::vector<double> point = {path[i][0], path[i][1], path[i][2]};
                 differentiatedPath.push_back(point);
-                timeIntervals.push_back(dt * hypot(point[0] - path[i - 1][0] - dSx * (j - 1), point[1] - path[i - 1][1] - dSy * (j - 1), point[2] - path[i - 1][2] - dSz * (j - 1)) / robotKinematics.dl); // adding last dt (a bit bigger than others)
+                timeIntervals.push_back(dt * hypot(point[0] - path[i - 1][0] - dSx * (j - 1), point[1] - path[i - 1][1] - dSy * (j - 1), point[2] - path[i - 1][2] - dSz * (j - 1)) / robotKinematics->dl); // adding last dt (a bit bigger than others)
             }
         }
     }
@@ -364,7 +364,7 @@ void Commands::setNewZeroPosition(Pronet08 *robot, Kinematics *robotKinematics)
     std::cout << "updated\n";
 };
 
-void Commands::cartesianToRobotFrame(std::vector<std::vector<double>> differentiatedPath, std::vector<double> timeIntervals, std::vector<std::vector<int>> &states)
+void Commands::cartesianToRobotFrame(std::vector<std::vector<double>> differentiatedPath, std::vector<double> timeIntervals, std::vector<std::vector<int>> &states, Kinematics *robotKinematics)
 {
     for (int i = 0; i < differentiatedPath.size(); i++)
     {
@@ -375,14 +375,14 @@ void Commands::cartesianToRobotFrame(std::vector<std::vector<double>> differenti
         std::vector<int> q_dot;
 
         // calculating q
-        l = robotKinematics.getInverseKinematics(differentiatedPath[i][0], differentiatedPath[i][1], differentiatedPath[i][2]);
+        l = robotKinematics->getInverseKinematics(differentiatedPath[i][0], differentiatedPath[i][1], differentiatedPath[i][2]);
         // printing length of cables after inverse kinematics
         for (int j = 0; j < 4; j++)
         {
             std::cout << "l" << j << " is " << l[j] << "\n";
         }
 
-        q = robotKinematics.getQfromL(l);
+        q = robotKinematics->getQfromL(l);
         for (int j = 0; j < 4; j++)
         {
             state.push_back(q[j]);
@@ -398,17 +398,16 @@ void Commands::cartesianToRobotFrame(std::vector<std::vector<double>> differenti
         }
         else
         {
-            // TODO: check negative speed
             for (int j = 0; j < 4; j++)
             {
                 int omega_i = (state[j] - states[i - 1][j]) / timeIntervals[i]; // in servo frame (q dot)
                 if (omega_i < 0)
                 {
-                    state.push_back(0.98 * omega_i / robotKinematics.coeff_speed_to_dq);
+                    state.push_back(0.98 * omega_i / robotKinematics->coeff_speed_to_dq);
                 }
                 else
                 {
-                    state.push_back(omega_i / robotKinematics.coeff_speed_to_dq); // convertion from servo frame (q dot) to speed in program units
+                    state.push_back(omega_i / robotKinematics->coeff_speed_to_dq); // convertion from servo frame (q dot) to speed in program units
                 }
             }
         }
@@ -430,7 +429,7 @@ void Commands::cartesianToRobotFrame(std::vector<std::vector<double>> differenti
     }
 };
 
-void Commands::executePathTraversal(Pronet08 *robot, std::vector<std::vector<int>> states)
+void Commands::executePathTraversal(Pronet08 *robot, std::vector<std::vector<int>> states, std::vector<double> timeIntervals)
 {
     for (int i = 1; i < states.size(); i++)
     {
